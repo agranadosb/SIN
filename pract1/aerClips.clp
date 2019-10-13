@@ -116,6 +116,7 @@
 ;; Implementación
 ;; =============================================================
 (defglobal ?*nod-gen* = 0)
+(defglobal ?*tipo* = 0)
 ;; -------------------------------------------------------------
 ;; Definición de los hechos
 ;; -------------------------------------------------------------
@@ -189,8 +190,8 @@
 	(printout t "Tipo de Busqueda " crlf "    1.- Anchura" crlf "    2.- Profundidad" crlf )
 	(bind ?a (read))
 	(if (= ?a 1)
-	       then    (set-strategy breadth)
-	       else   (set-strategy depth))
+	       then    (set-strategy breadth) (bind ?*tipo* "anchura")
+	       else   (set-strategy depth)) (bind ?*tipo* "profundiad")
         (printout t " Ejecuta run para poner en marcha el programa " crlf)
 	(assert (profundidad-maxima ?prof))
 )
@@ -456,7 +457,7 @@
   )
   (test (= 0 (length $?maletas)))
   =>
-  (printout t "Solucion encontrada en el nivel " ?nivel " en el hecho " ?f crlf)
+  (printout t "Solucion encontrada:" crlf " - Nivel: " ?nivel crlf " - Hecho: " ?f crlf " - Nodos: " ?*nod-gen*  crlf " - Tipo: " ?*tipo* crlf)
   (halt)
 )
 
