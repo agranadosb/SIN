@@ -151,6 +151,7 @@
       m4 p6
     finMaletas
     nivel 0
+    hecho 0
   )
 )
 
@@ -183,21 +184,28 @@
 	(bind ?lista (fact-slot-value ?f implied))
 	(bind ?l2 (member$ nivel ?lista))
 	(bind ?n (nth (+ ?l2 1) ?lista)) 
-	;;(printout t "Nivel=" ?n crlf)
+	(printout t crlf "Nivel=" ?n crlf)
 	(bind ?dir (nth (length ?lista) ?lista))
 	(bind ?mov (subseq$ ?lista (+ ?l2 3) (- (length ?lista) 2))) 
 	(bind ?path (create$ ?dir ?mov))
-	;;(printout t ?dir "    " ?mov crlf)
+	(printout t crlf)
 
 	(loop-for-count (- ?n 1) 
-		(bind ?lista (fact-slot-value (fact-index ?dir) implied))
+		(bind ?lista (fact-slot-value ?dir implied))
 		(bind ?dir (nth (length ?lista) ?lista))
 		(bind ?l2 (member$ nivel ?lista))
 		(bind ?mov (subseq$ ?lista (+ ?l2 3) (- (length ?lista) 2)))
 		(bind ?path (create$ ?dir ?mov ?path)) 
 	)
 
-	(printout t "Camino: " ?path crlf)
+  (printout t "Camino: " crlf)
+
+  (loop-for-count (- (length ?path) 1)
+    (printout t (first$ ?path) crlf)
+		(bind ?path (rest$ ?path))
+	)
+
+	(printout t (first$ ?path) crlf)
 )
 
 ;; -------------------------------------------------------------
@@ -210,14 +218,15 @@
 ;; =>
 ;; posicionMaquina = posicionNodoFinal
 (defrule moverMaquina
-  (state maquina ?posicionNodoInicial $?resto nivel ?nivel)
+  ?f1 <- (state maquina ?posicionNodoInicial $?resto nivel ?nivel hecho ?)
   (camino ?posicionNodoInicial ?posicionNodoFinal)
-  (not (state maquina ?posicionNodoFinal $?resto nivel ?))
+  ;; No se debe repetir el estado anterior en un nivel diferente
+  (not (state maquina ?posicionNodoFinal $?resto nivel ? hecho ?))
   (profundidad-maxima ?prof)
   (test (< ?nivel ?prof))
   =>
   (bind ?*nod-gen* (+ ?*nod-gen* 1))
-  (assert (state maquina ?posicionNodoFinal $?resto nivel (+ 1 ?nivel)))
+  (assert (state maquina ?posicionNodoFinal $?resto nivel (+ 1 ?nivel) hecho ?f1))
 )
 
 ;; dejarMaleta -> Regla que se encarga de dejar la maleta en el destino
@@ -231,7 +240,7 @@
 ;; ... iniMaletas $?iniM $?finM finMaletas (Se quita la maleta del hecho dinámico, para que no se mueva más)
 (defrule dejarMaleta
   (declare (salience 60))
-  (state maquina ?destinoM ocupada
+  ?f1 <- (state maquina ?destinoM ocupada
     iniVagon
       $?iniV ;; lista con vagones
         ?vx maquina ?cantidadV
@@ -243,6 +252,7 @@
       $?finM ;; lista con maletas
     finMaletas
     nivel ?nivel
+    hecho ?
   )
   (maleta ?mx ?pesoM ?destinoM)
   (profundidad-maxima ?prof)
@@ -259,6 +269,7 @@
       $?finM ;; lista con maletas
     finMaletas
     nivel (+ 1 ?nivel)
+    hecho ?f1
   ))
   (bind ?*nod-gen* (+ ?*nod-gen* 1))
 )
@@ -275,7 +286,7 @@
 ;; cantidadV += 1
 (defrule recogerMaleta
   (declare (salience 40))
-  (state maquina ?posicionM ocupada
+  ?f1 <- (state maquina ?posicionM ocupada
     iniVagon
       $?iniV ;; lista con vagones
         ?vx maquina ?cantidadV
@@ -287,6 +298,7 @@
       $?finM ;; lista con maletas
     finMaletas
     nivel ?nivel
+    hecho ?
   )
   (maleta ?mx ?pesoM ?destinoM)
   (vagon ?vx ?pesoMin ?pesoMax)
@@ -307,6 +319,7 @@
       $?finM ;; lista con maletas
     finMaletas
     nivel (+ 1 ?nivel)
+    hecho ?f1
   ))
   (bind ?*nod-gen* (+ ?*nod-gen* 1))
 )
@@ -321,7 +334,7 @@
 ;; estadoMaquina = ocupada
 (defrule engancharVagonMaquina
   (declare (salience 20))
-  (state maquina ?posicionV libre
+  ?f1 <- (state maquina ?posicionV libre
     iniVagon
       $?iniV ;; lista con vagones
         ?vx ?posicionV 0
@@ -329,7 +342,9 @@
     finVagon
     $?maletas ;; lista con maletas
     nivel ?nivel
+    hecho ?
   )
+  ;; No se debe repetir el estado anterior en un nivel diferente
   (not (state maquina ?posicionV ocupada
     iniVagon
       $?iniV ;; lista con vagones
@@ -338,6 +353,7 @@
     finVagon
     $?maletas ;; lista con maletas
     nivel ?
+    hecho ?
   ))
   (profundidad-maxima ?prof)
   (test (< ?nivel ?prof))
@@ -350,6 +366,7 @@
     finVagon
     $?maletas ;; lista con maletas
     nivel (+ 1 ?nivel)
+    hecho ?f1
   ))
   (bind ?*nod-gen* (+ ?*nod-gen* 1))
 )
@@ -363,7 +380,7 @@
 ;; posicionV = posicionMaquina
 ;; estadoMaquina = libre
 (defrule desengancharVagonMaquina
-  (state maquina ?posicionMaquina ocupada
+  ?f1 <- (state maquina ?posicionMaquina ocupada
     iniVagon
       $?iniV ;; lista con vagones
         ?vx maquina 0
@@ -371,7 +388,9 @@
     finVagon
     $?maletas ;; lista con maletas
     nivel ?nivel
+    hecho ?
   )
+  ;; No se debe repetir el estado anterior en un nivel diferente
   (not (state maquina ?posicionMaquina libre
     iniVagon
       $?iniV ;; lista con vagones
@@ -380,6 +399,7 @@
     finVagon
     $?maletas ;; lista con maletas
     nivel ?
+    hecho ?
   ))
   (profundidad-maxima ?prof)
   (test (< ?nivel ?prof))
@@ -392,6 +412,7 @@
     finVagon
     $?maletas ;; lista con maletas
     nivel (+ 1 ?nivel)
+    hecho ?f1
   ))
   (bind ?*nod-gen* (+ ?*nod-gen* 1))
   
@@ -405,14 +426,15 @@
 ;; acabar el programa
 (defrule acabaPrograma
   (declare (salience 100))
-  (state $?estado
+  ?f <- (state $?estado
     iniMaletas
       $?maletas ;; lista con maletas
     finMaletas
     nivel ?nivel
+    hecho ?
   )
   (test (= 0 (length $?maletas)))
   =>
-  (printout t "SOLUCION ENCONTRADA")
+  (printout t "Solucion encontrada en el nivel " ?nivel " en el hecho " ?f crlf)
   (halt)
 )
