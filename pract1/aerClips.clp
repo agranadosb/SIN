@@ -21,6 +21,7 @@
 ;;    - Destino de la maleta tiene que ser la posición actual de la máquina
 ;;    - Si se deja en el destino, la cantidad de maletas del vagón que la llevaba disminuye
 ;;    - Una vez depositada en el destino ya no se debe mover
+;;    - La máquina debe estar ocupada por el vagón del que se quiere dejar la maleta
 ;;
 ;; -> Recoger maleta
 ;;    - Siempre que no esté en un vagón
@@ -175,11 +176,12 @@
 ;; posicionMaquina == destinoMaletaY
 ;; posicionMaletaY == vagonX
 ;; posicionVagonX == maquina
+;; estadoMaquina == ocupada
 ;; =>
 ;; cantidadVagonX = pesoMaletaY
 ;; ... iniMaletas $?iniM $?finM finMaletas ...
 (defrule dejarMaleta
-  (state maquina ?destinoM ?esatdoMaquina
+  (state maquina ?destinoM ocupada
     iniVagon
       $?iniV
         ?vx maquina ?cantidadV
@@ -193,10 +195,10 @@
   )
   (maleta ?mx ?pesoM ?destinoM)
   =>
-  (assert (state maquina ?destinoM ?esatdoMaquina
+  (assert (state maquina ?destinoM ocupada
     iniVagon
       $?iniV
-        ?vx maquina (- ?cantidadV ?pesoM)
+        ?vx maquina (- ?cantidadV 1)
       $?finV
     finVagon
     iniMaletas
@@ -204,6 +206,48 @@
       $?finM
     finMaletas
   ))
+)
+
+;; Recoger Maleta -> Regla que se encarga de recoger la maleta de un nodo
+;; .............................................................
+;; posicionMaquina == posicionMaleta
+;; posicionVagon == maquina
+;; pesoMinimo <= pesoMaleta
+;; pesoMaximo >= pesoMaleta
+;; estadoMaquina == ocupada
+;; =>
+;; posicionMaleta = vx
+;; cantidadV += 1
+(defrule recogerMaleta
+  (state maquina ?posicionM ocupada
+    iniVagon
+      $?iniV
+        ?vx maquina ?cantidadV
+      $?finV
+    finVagon
+    iniMaletas
+      $?iniM
+        ?mx ?posicionM
+      $?finM
+    finMaletas
+  )
+  (maleta ?mx ?pesoM ?destinoM)
+  (vagon ?vx ?pesoMin ?pesoMax)
+  (test (<= ?pesoMin ?pesoM))
+  (test (>= ?pesoMax ?pesoM))
+  =>
+  (state maquina ?posicionM ocupada
+    iniVagon
+      $?iniV
+        ?vx maquina (+ 1 ?cantidadV)
+      $?finV
+    finVagon
+    iniMaletas
+      $?iniM
+        ?mx ?vx
+      $?finM
+    finMaletas
+  )
 )
 
 (defrule def
