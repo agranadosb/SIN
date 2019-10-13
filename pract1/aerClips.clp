@@ -313,7 +313,8 @@
 ;; length($?maletas) == 0
 ;; =>
 ;; acabar el programa
-(defrule def
+(defrule acabaPrograma
+  (declare (salience 100))
   ($?estado
     iniMaletas
       $?maletas
@@ -321,5 +322,6 @@
   )
   (test (= 0 (length $?maletas)))
   =>
-  ;; Acabar programa
+  (printout t "SOLUCION ENCONTRADA")
+  (halt)
 )
