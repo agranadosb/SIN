@@ -11,6 +11,9 @@
 ;; 3.- Un vagón no puede contener maletas si no está enganchao a una máquina
 ;; 4.- La maquina tiene un identificador (maquina) y recorre los nodos. La maquina sólo puede cargar un vagón.
 ;; 5.- Hay caminos entre los nodos que sólo la máquina puede recorrer
+;; 6.- Se debe poder recorrer el camino de vuelta desde cualquier hecho
+;; 7.- Se debe poder elegir la prfundidad máxima del árbol de búsqueda de hechos
+;; 8.- Se debe acabar el programa cuando no haya solución con la profundidad elegida
 
 
 ;; -------------------------------------------------------------
