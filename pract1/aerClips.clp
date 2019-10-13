@@ -92,7 +92,7 @@
 ;; =============================================================
 ;; Implementación
 ;; =============================================================
-
+(defglobal ?*nod-gen* = 0)
 ;; -------------------------------------------------------------
 ;; Definición de los hechos
 ;; -------------------------------------------------------------
@@ -150,7 +150,32 @@
       m3 p1
       m4 p6
     finMaletas
+    nivel 0
   )
+)
+
+;; -------------------------------------------------------------
+;; Código de inicio
+;; -------------------------------------------------------------
+(defrule no_solucion
+  (declare (salience -99))
+  =>
+  (printout t "SOLUCION NO ENCONTRADA" crlf)
+  (printout t "NUMERO DE NODOS EXPANDIDOS O REGLAS DISPARADAS " ?*nod-gen* crlf)
+  (halt)
+)
+
+(deffunction inicio()
+  (reset)
+	(printout t "Profundidad Maxima:= " )
+	(bind ?prof (read))
+	(printout t "Tipo de Busqueda " crlf "    1.- Anchura" crlf "    2.- Profundidad" crlf )
+	(bind ?a (read))
+	(if (= ?a 1)
+	       then    (set-strategy breadth)
+	       else   (set-strategy depth))
+        (printout t " Ejecuta run para poner en marcha el programa " crlf)
+	(assert (profundidad-maxima ?prof))
 )
 
 ;; -------------------------------------------------------------
@@ -163,10 +188,15 @@
 ;; =>
 ;; posicionMaquina = posicionNodoFinal
 (defrule moverMaquina
-  (state maquina ?posicionNodoInicial $?resto)
+(declare (salience 10))
+  (state maquina ?posicionNodoInicial $?resto nivel ?nivel)
   (camino ?posicionNodoInicial ?posicionNodoFinal)
+  (not (state maquina ?posicionNodoFinal $?resto nivel ?))
+  (profundidad-maxima ?prof)
+  (test (< ?nivel ?prof))
   =>
-  (assert (state maquina ?posicionNodoFinal $?resto))
+  (bind ?*nod-gen* (+ ?*nod-gen* 1))
+  (assert (state maquina ?posicionNodoFinal $?resto nivel (+ 1 ?nivel)))
 )
 
 ;; dejarMaleta -> Regla que se encarga de dejar la maleta en el destino
@@ -191,8 +221,11 @@
         ?mx ?vx
       $?finM ;; lista con maletas
     finMaletas
+    nivel ?nivel
   )
   (maleta ?mx ?pesoM ?destinoM)
+  (profundidad-maxima ?prof)
+  (test (< ?nivel ?prof))
   =>
   (assert (state maquina ?destinoM ocupada
     iniVagon
@@ -204,7 +237,9 @@
       $?iniM ;; lista con maletas
       $?finM ;; lista con maletas
     finMaletas
+    nivel (+ 1 ?nivel)
   ))
+  (bind ?*nod-gen* (+ ?*nod-gen* 1))
 )
 
 ;; recogerMaleta -> Regla que se encarga de recoger la maleta de un nodo
@@ -230,11 +265,14 @@
         ?mx ?posicionM
       $?finM ;; lista con maletas
     finMaletas
+    nivel ?nivel
   )
   (maleta ?mx ?pesoM ?destinoM)
   (vagon ?vx ?pesoMin ?pesoMax)
   (test (<= ?pesoMin ?pesoM))
   (test (>= ?pesoMax ?pesoM))
+  (profundidad-maxima ?prof)
+  (test (< ?nivel ?prof))
   =>
   (assert (state maquina ?posicionM ocupada
     iniVagon
@@ -247,7 +285,9 @@
         ?mx ?vx
       $?finM ;; lista con maletas
     finMaletas
+    nivel (+ 1 ?nivel)
   ))
+  (bind ?*nod-gen* (+ ?*nod-gen* 1))
 )
 
 ;; engancharVagonMaquina -> Regla que se encarga de enganchar el vagón en una máquina
@@ -267,7 +307,19 @@
       $?finV ;; lista con vagones
     finVagon
     $?maletas ;; lista con maletas
+    nivel ?nivel
   )
+  (not (state maquina ?posicionV ocupada
+    iniVagon
+      $?iniV ;; lista con vagones
+        ?vx ?posicionV 0
+      $?finV ;; lista con vagones
+    finVagon
+    $?maletas ;; lista con maletas
+    nivel ?
+  ))
+  (profundidad-maxima ?prof)
+  (test (< ?nivel ?prof))
   =>
   (assert (state maquina ?posicionV ocupada
     iniVagon
@@ -276,7 +328,9 @@
       $?finV ;; lista con vagones
     finVagon
     $?maletas ;; lista con maletas
+    nivel (+ 1 ?nivel)
   ))
+  (bind ?*nod-gen* (+ ?*nod-gen* 1))
 )
 
 ;; desengancharVagonMaquina -> Regla que se encarga de desenganchar el vagón de la maquina
@@ -295,7 +349,19 @@
       $?finV ;; lista con vagones
     finVagon
     $?maletas ;; lista con maletas
+    nivel ?nivel
   )
+  (not (state maquina ?posicionMaquina libre
+    iniVagon
+      $?iniV ;; lista con vagones
+        ?vx maquina 0
+      $?finV ;; lista con vagones
+    finVagon
+    $?maletas ;; lista con maletas
+    nivel ?
+  ))
+  (profundidad-maxima ?prof)
+  (test (< ?nivel ?prof))
   =>
   (assert (state maquina ?posicionMaquina libre
     iniVagon
@@ -304,7 +370,10 @@
       $?finV ;; lista con vagones
     finVagon
     $?maletas ;; lista con maletas
+    nivel (+ 1 ?nivel)
   ))
+  (bind ?*nod-gen* (+ ?*nod-gen* 1))
+  
 )
 
 ;; acabaPrograma -> Regla que se encarga de acabar el programa
@@ -319,9 +388,10 @@
     iniMaletas
       $?maletas ;; lista con maletas
     finMaletas
+    nivel ?nivel
   )
   (test (= 0 (length $?maletas)))
   =>
-  (printout t "SOLUCION ENCONTRADA\n")
+  (printout t "SOLUCION ENCONTRADA")
   (halt)
 )
