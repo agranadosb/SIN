@@ -158,6 +158,8 @@
 ;; -------------------------------------------------------------
 ;; Código de inicio
 ;; -------------------------------------------------------------
+
+;; Función para acabar el programa si no se encuentra la solucón
 (defrule no_solucion
   (declare (salience -99))
   =>
@@ -166,6 +168,7 @@
   (halt)
 )
 
+;; Función para empezar el programa y elegir el tipo de ejecución
 (deffunction inicio()
   (reset)
 	(printout t "Profundidad Maxima:= " )
@@ -179,6 +182,8 @@
 	(assert (profundidad-maxima ?prof))
 )
 
+;; Función para mostrar el camino desde un hecho
+;; @param index -> Índice del hecho a buscar
 (deffunction camino
 	(?f)
 	(bind ?lista (fact-slot-value ?f implied))
@@ -190,6 +195,7 @@
 	(bind ?path (create$ ?dir ?mov))
 	(printout t crlf)
 
+  ;; Bucle para crear la lista de hechos para el camino
 	(loop-for-count (- ?n 1) 
 		(bind ?lista (fact-slot-value ?dir implied))
 		(bind ?dir (nth (length ?lista) ?lista))
@@ -199,13 +205,15 @@
 	)
 
   (printout t "Camino: " crlf)
-
+  (bind ?count 1)
+  ;; Bucle que muestra por pantalla el camino de hechos
   (loop-for-count (- (length ?path) 1)
-    (printout t (first$ ?path) crlf)
+    (printout t ?count " - " (first$ ?path) crlf)
 		(bind ?path (rest$ ?path))
+    (bind ?count (+ ?count 1))
 	)
 
-	(printout t (first$ ?path) crlf)
+	(printout t ?count " - " (first$ ?path) crlf)
 )
 
 ;; -------------------------------------------------------------
