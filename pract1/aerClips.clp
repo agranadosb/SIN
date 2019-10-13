@@ -71,11 +71,30 @@
 ;; Estado Dinámico
 ;; -------------------------------------------------------------
 ;; -> Estado aerolínia
-;; (state maquina posicionMaquina estadoMaquina iniVagon [dV] finVagon iniMaletas [dM] finMaletas)
+;; (state maquina posicionMaquina estadoMaquina
+;;    iniVagon
+;;      [dV]
+;;    finVagon
+;;    iniMaletas
+;;      [dM]
+;;    finMaletas
+;;    nivel nNivel
+;;    hecho nHecho
+;; )
+;;
 ;; posicionMaquina  -->   nodo
 ;; estadoMaquina    -->   ocupada | libre
 ;; dV               -->   vx posicionVagon cantidadMaletasVagon / x >= 0 and posicionVagon = nodo | maquina
 ;; dM               -->   my posicionMaleta / y >= 0 and posicionMaleta = nodo | vx
+;; nNivel           -->   número de la profundidad del hecho
+;; nHecho           -->   número del hecho anterior al que ha creado el hecho actual
+
+
+;; -------------------------------------------------------------
+;; Definición de las funciones
+;; -------------------------------------------------------------
+;; inicio -> Función que inicia el programa
+;; camino indexFact -> Función que dado el ínidice de un hecho, devuelve el camino que se ha seguido
 
 
 ;; -------------------------------------------------------------
@@ -87,6 +106,7 @@
 ;; engancharVagonMaquina -> Regla que se encarga de enganchar el vagón en una máquina
 ;; desengancharVagonMaquina -> Regla que se encarga de desenganchar el vagón de la maquina
 ;; acabaPrograma -> Regla que se encarga de acabar el programa
+;; no_solucion -> Si se ha alcannnzado la profundidad máxima y quedan más hehcos acaba el programa
 
 
 ;; =============================================================
@@ -158,16 +178,6 @@
 ;; -------------------------------------------------------------
 ;; Código de inicio
 ;; -------------------------------------------------------------
-
-;; Función para acabar el programa si no se encuentra la solucón
-(defrule no_solucion
-  (declare (salience -99))
-  =>
-  (printout t "SOLUCION NO ENCONTRADA" crlf)
-  (printout t "NUMERO DE NODOS EXPANDIDOS O REGLAS DISPARADAS " ?*nod-gen* crlf)
-  (halt)
-)
-
 ;; Función para empezar el programa y elegir el tipo de ejecución
 (deffunction inicio()
   (reset)
@@ -444,5 +454,15 @@
   (test (= 0 (length $?maletas)))
   =>
   (printout t "Solucion encontrada en el nivel " ?nivel " en el hecho " ?f crlf)
+  (halt)
+)
+
+;; no_solucion -> Función para acabar el programa si no se encuentra la solucón
+;; .............................................................
+(defrule no_solucion
+  (declare (salience -99))
+  =>
+  (printout t "SOLUCION NO ENCONTRADA" crlf)
+  (printout t "NUMERO DE NODOS EXPANDIDOS O REGLAS DISPARADAS " ?*nod-gen* crlf)
   (halt)
 )
