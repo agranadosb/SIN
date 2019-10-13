@@ -288,7 +288,6 @@
 ;; posicionV = posicionMaquina
 ;; estadoMaquina = libre
 (defrule desengancharVagonMaquina
-  (declare (salience -10))
   (state maquina ?posicionMaquina ocupada
     iniVagon
       $?iniV ;; lista con vagones
@@ -323,6 +322,6 @@
   )
   (test (= 0 (length $?maletas)))
   =>
-  (printout t "SOLUCION ENCONTRADA")
+  (printout t "SOLUCION ENCONTRADA\n")
   (halt)
 )
