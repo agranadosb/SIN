@@ -99,16 +99,16 @@
 ;; -> Hechos estáticos
 ;; - Maletas
 (deffacts maletas
- (mal m1 12 p3)
- (mal m2 18 p5)
- (mal m3 20 re)
- (mal m4 14 re)
+ (maleta m1 12 p3)
+ (maleta m2 18 p5)
+ (maleta m3 20 re)
+ (maleta m4 14 re)
 )
 
 ;; - Vagones
 (deffacts vagon
-  (vag t1 0 15)
-  (vag t2 16 23)
+  (vagon t1 0 15)
+  (vagon t2 16 23)
 )
 
 ;; - Caminos entre nodos
@@ -179,6 +179,7 @@
 ;; cantidadVagonX = pesoMaletaY
 ;; ... iniMaletas $?iniM $?finM finMaletas (Se quita la maleta del hecho dinámico, para que no se mueva más)
 (defrule dejarMaleta
+  (declare (salience 60))
   (state maquina ?destinoM ocupada
     iniVagon
       $?iniV ;; lista con vagones
@@ -217,6 +218,7 @@
 ;; posicionMaleta = vx
 ;; cantidadV += 1
 (defrule recogerMaleta
+  (declare (salience 40))
   (state maquina ?posicionM ocupada
     iniVagon
       $?iniV ;; lista con vagones
@@ -257,6 +259,7 @@
 ;; posicionVagon = maquina
 ;; estadoMaquina = ocupada
 (defrule engancharVagonMaquina
+  (declare (salience 20))
   (state maquina ?posicionV libre
     iniVagon
       $?iniV ;; lista con vagones
@@ -285,6 +288,7 @@
 ;; posicionV = posicionMaquina
 ;; estadoMaquina = libre
 (defrule desengancharVagonMaquina
+  (declare (salience -10))
   (state maquina ?posicionMaquina ocupada
     iniVagon
       $?iniV ;; lista con vagones
@@ -312,7 +316,7 @@
 ;; acabar el programa
 (defrule acabaPrograma
   (declare (salience 100))
-  ($?estado
+  (state $?estado
     iniMaletas
       $?maletas ;; lista con maletas
     finMaletas
