@@ -178,6 +178,28 @@
 	(assert (profundidad-maxima ?prof))
 )
 
+(deffunction camino
+	(?f)
+	(bind ?lista (fact-slot-value ?f implied))
+	(bind ?l2 (member$ nivel ?lista))
+	(bind ?n (nth (+ ?l2 1) ?lista)) 
+	;;(printout t "Nivel=" ?n crlf)
+	(bind ?dir (nth (length ?lista) ?lista))
+	(bind ?mov (subseq$ ?lista (+ ?l2 3) (- (length ?lista) 2))) 
+	(bind ?path (create$ ?dir ?mov))
+	;;(printout t ?dir "    " ?mov crlf)
+
+	(loop-for-count (- ?n 1) 
+		(bind ?lista (fact-slot-value (fact-index ?dir) implied))
+		(bind ?dir (nth (length ?lista) ?lista))
+		(bind ?l2 (member$ nivel ?lista))
+		(bind ?mov (subseq$ ?lista (+ ?l2 3) (- (length ?lista) 2)))
+		(bind ?path (create$ ?dir ?mov ?path)) 
+	)
+
+	(printout t "Camino: " ?path crlf)
+)
+
 ;; -------------------------------------------------------------
 ;; Implementación de las reglas
 ;; -------------------------------------------------------------
@@ -188,7 +210,6 @@
 ;; =>
 ;; posicionMaquina = posicionNodoFinal
 (defrule moverMaquina
-(declare (salience 10))
   (state maquina ?posicionNodoInicial $?resto nivel ?nivel)
   (camino ?posicionNodoInicial ?posicionNodoFinal)
   (not (state maquina ?posicionNodoFinal $?resto nivel ?))
@@ -312,7 +333,7 @@
   (not (state maquina ?posicionV ocupada
     iniVagon
       $?iniV ;; lista con vagones
-        ?vx ?posicionV 0
+        ?vx maquina 0
       $?finV ;; lista con vagones
     finVagon
     $?maletas ;; lista con maletas
@@ -354,7 +375,7 @@
   (not (state maquina ?posicionMaquina libre
     iniVagon
       $?iniV ;; lista con vagones
-        ?vx maquina 0
+        ?vx ?posicionMaquina 0
       $?finV ;; lista con vagones
     finVagon
     $?maletas ;; lista con maletas
