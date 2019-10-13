@@ -55,17 +55,6 @@
 
 
 ;; -------------------------------------------------------------
-;; Estado Dinámico
-;; -------------------------------------------------------------
-;; -> Estado aerolínia
-;; (state maquina posicionMaquina estadoMaquina iniVagon [dV] finVagon iniMaletas [dM] finMaletas)
-;; posicionMaquina  -->   nodo
-;; estadoMaquina    -->   ocupada | libre
-;; dV               -->   vx posicionVagon cantidadMaletasVagon / x >= 0 and posicionVagon = nodo | maquina
-;; dM               -->   my posicionMaleta / y >= 0 and posicionMaleta = nodo | vx
-
-
-;; -------------------------------------------------------------
 ;; Estados Estáticos
 ;; -------------------------------------------------------------
 ;; -> Maleta
@@ -76,6 +65,18 @@
 ;;
 ;; -> Camino
 ;; (camino posicionInicial posicionFinal) / posicionInicial = nodo and posicionFinal = nodo
+
+
+;; -------------------------------------------------------------
+;; Estado Dinámico
+;; -------------------------------------------------------------
+;; -> Estado aerolínia
+;; (state maquina posicionMaquina estadoMaquina iniVagon [dV] finVagon iniMaletas [dM] finMaletas)
+;; posicionMaquina  -->   nodo
+;; estadoMaquina    -->   ocupada | libre
+;; dV               -->   vx posicionVagon cantidadMaletasVagon / x >= 0 and posicionVagon = nodo | maquina
+;; dM               -->   my posicionMaleta / y >= 0 and posicionMaleta = nodo | vx
+
 
 ;; -------------------------------------------------------------
 ;; Definición de las reglas
@@ -138,46 +139,34 @@
 
 ;; -> Hecho dinámico
 (deffacts terminal
-  (state
-    maquina posicionMaquina estadoMaquina
+  (state maquina p6 ocupada
     iniVagon
-      t1 posicionVagon1 cantidadPesoVagon1
-      t2 posicionVagon2 cantidadPesoVagon2
+      t1 maquina 0
+      t2 p2 0
     finVagon
     iniMaletas
-      m1 posicionMaleta1
-      m2 posicionMaleta2
-      m3 posicionMaleta3
+      m1 fac
+      m2 fac
+      m3 p1
+      m4 p6
+    finMaletas
   )
 )
 
 ;; -------------------------------------------------------------
 ;; Implementación de las reglas
 ;; -------------------------------------------------------------
+
 ;; moverMaquina -> Regla que se encarga de mover la máquinade un nodo a otro mediante un camino
 ;; .............................................................
 ;; posicionMaquina == posicionNodoInicial
 ;; =>
 ;; posicionMaquina = posicionNodoFinal
 (defrule moverMaquina
-  (state maquina ?posicionNodoInicial ?esatdoMaquina
-    iniVagon
-      $?vagones
-    finVagon
-    iniMaletas
-      $?maletas
-    finMaletas
-  )
+  (state maquina ?posicionNodoInicial $?resto)
   (camino ?posicionNodoInicial ?posicionNodoFinal)
   =>
-  (state maquina ?posicionNodoFinal ?esatdoMaquina
-    iniVagon
-      $?vagones
-    finVagon
-    iniMaletas
-      $?maletas
-    finMaletas
-  )
+  (assert (state maquina ?posicionNodoFinal $?resto))
 )
 
 ;; dejarMaleta -> Regla que se encarga de dejar la maleta en el destino
@@ -188,31 +177,31 @@
 ;; estadoMaquina == ocupada
 ;; =>
 ;; cantidadVagonX = pesoMaletaY
-;; ... iniMaletas $?iniM $?finM finMaletas
+;; ... iniMaletas $?iniM $?finM finMaletas (Se quita la maleta del hecho dinámico, para que no se mueva más)
 (defrule dejarMaleta
   (state maquina ?destinoM ocupada
     iniVagon
-      $?iniV
+      $?iniV ;; lista con vagones
         ?vx maquina ?cantidadV
-      $?finV
+      $?finV ;; lista con vagones
     finVagon
     iniMaletas
-      $?iniM
+      $?iniM ;; lista con maletas
         ?mx ?vx
-      $?finM
+      $?finM ;; lista con maletas
     finMaletas
   )
   (maleta ?mx ?pesoM ?destinoM)
   =>
   (assert (state maquina ?destinoM ocupada
     iniVagon
-      $?iniV
+      $?iniV ;; lista con vagones
         ?vx maquina (- ?cantidadV 1)
-      $?finV
+      $?finV ;; lista con vagones
     finVagon
     iniMaletas
-      $?iniM
-      $?finM
+      $?iniM ;; lista con maletas
+      $?finM ;; lista con maletas
     finMaletas
   ))
 )
@@ -230,14 +219,14 @@
 (defrule recogerMaleta
   (state maquina ?posicionM ocupada
     iniVagon
-      $?iniV
+      $?iniV ;; lista con vagones
         ?vx maquina ?cantidadV
-      $?finV
+      $?finV ;; lista con vagones
     finVagon
     iniMaletas
-      $?iniM
+      $?iniM ;; lista con maletas
         ?mx ?posicionM
-      $?finM
+      $?finM ;; lista con maletas
     finMaletas
   )
   (maleta ?mx ?pesoM ?destinoM)
@@ -245,18 +234,18 @@
   (test (<= ?pesoMin ?pesoM))
   (test (>= ?pesoMax ?pesoM))
   =>
-  (state maquina ?posicionM ocupada
+  (assert (state maquina ?posicionM ocupada
     iniVagon
-      $?iniV
+      $?iniV ;; lista con vagones
         ?vx maquina (+ 1 ?cantidadV)
-      $?finV
+      $?finV ;; lista con vagones
     finVagon
     iniMaletas
-      $?iniM
+      $?iniM ;; lista con maletas
         ?mx ?vx
-      $?finM
+      $?finM ;; lista con maletas
     finMaletas
-  )
+  ))
 )
 
 ;; engancharVagonMaquina -> Regla que se encarga de enganchar el vagón en una máquina
@@ -270,21 +259,21 @@
 (defrule engancharVagonMaquina
   (state maquina ?posicionV libre
     iniVagon
-      $?iniV
+      $?iniV ;; lista con vagones
         ?vx ?posicionV 0
-      $?finV
+      $?finV ;; lista con vagones
     finVagon
-    $?maletas
+    $?maletas ;; lista con maletas
   )
   =>
-  (state maquina ?posicionV ocupada
+  (assert (state maquina ?posicionV ocupada
     iniVagon
-      $?iniV
+      $?iniV ;; lista con vagones
         ?vx maquina 0
-      $?finV
+      $?finV ;; lista con vagones
     finVagon
-    $?maletas
-  )
+    $?maletas ;; lista con maletas
+  ))
 )
 
 ;; desengancharVagonMaquina -> Regla que se encarga de desenganchar el vagón de la maquina
@@ -298,21 +287,21 @@
 (defrule desengancharVagonMaquina
   (state maquina ?posicionMaquina ocupada
     iniVagon
-      $?iniV
+      $?iniV ;; lista con vagones
         ?vx maquina 0
-      $?finV
+      $?finV ;; lista con vagones
     finVagon
-    $?maletas
+    $?maletas ;; lista con maletas
   )
   =>
-  (state maquina ?posicionMaquina libre
+  (assert (state maquina ?posicionMaquina libre
     iniVagon
-      $?iniV
+      $?iniV ;; lista con vagones
         ?vx ?posicionMaquina 0
-      $?finV
+      $?finV ;; lista con vagones
     finVagon
-    $?maletas
-  )
+    $?maletas ;; lista con maletas
+  ))
 )
 
 ;; acabaPrograma -> Regla que se encarga de acabar el programa
@@ -325,7 +314,7 @@
   (declare (salience 100))
   ($?estado
     iniMaletas
-      $?maletas
+      $?maletas ;; lista con maletas
     finMaletas
   )
   (test (= 0 (length $?maletas)))
