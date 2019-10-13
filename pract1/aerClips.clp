@@ -1,3 +1,90 @@
+;; =============================================================
+;; Documentación
+;; =============================================================
+
+;; -------------------------------------------------------------
+;; Descripción y especificaciones del problema
+;; -------------------------------------------------------------
+;; Se tienen que repartir una serie de maletas de unos nodos a otros mediante unos vagones y una máquina
+;; 1.- Las maletas tienen un peso (peso) y un identificador (mx)
+;; 2.- Los vagones tienen un rango de pesos que pueden llevar (pesoMinimo, pesoMaximo) para las maletas y un identificador (vx). Un vagón puede llevar tantas maletas como se desee
+;; 3.- Un vagón no puede contener maletas si no está enganchao a una máquina
+;; 4.- La maquina tiene un identificador (maquina) y recorre los nodos. La maquina sólo puede cargar un vagón.
+;; 5.- Hay caminos entre los nodos que sólo la máquina puede recorrer
+
+
+;; -------------------------------------------------------------
+;; Acciones Posibles y Restricciones
+;; -------------------------------------------------------------
+;; -> Dejar maleta
+;;    - Si están en un vagón
+;;    - Destino de la maleta tiene que ser la posición actual de la máquina
+;;    - Si se deja en el destino, la cantidad de maletas del vagón que la llevaba disminuye
+;;    - Una vez depositada en el destino ya no se debe mover
+;;
+;; -> Recoger maleta
+;;    - Siempre que no esté en un vagón
+;;    - Se debe recoger de un nodo
+;;    - Debe recogerla un vagón que esté en la máquina
+;;    - Debe caber en el vagón que esta enganchado a la máquina
+;;    - Si se recoger, se debe aumentar la cantidad de maletas del vagón
+;;    - Una vez recogida se debe cambiar la posción de la maleta de un nodo al identificador del vagón que la ha recogido
+;;    - No se debe recoger una maleta que está en su destino
+;;
+;; -> Enganchar vagón en máquina
+;;    - Siempre que la máquina esté libre
+;;    - El vagón debe estar en un nodo
+;;    - El vagón debe estar vacío
+;;    - Si se engancha, se debe cambiar la posición del vagón de un nodo a maquina
+;;    - Si se engancha, la máquina cambia de estado libre a ocupada
+;;
+;; -> Desenganchar vagón de máquina
+;;    - Siempre que el vagón esté en la máquina
+;;    - El vagón debe estar vacío
+;;    - Si se desengancha, la máquina pasa de estado ocupada a libre
+;;    - Si se desengancha, la posición del vagón pasa de ser maquina a un nodo
+;;
+;; -> Mover máquina
+;;    - Siempre que sea de un nodo a otro
+;;    - Si se mueve, se debe cambiar la posición de la máquina de el nodo inicial al final
+;;
+;; -> Acabar programa
+;;    - Cuando todas las maletas estén en el destino, es decir, cuando no haya más maletas que mover
+
+
+;; -------------------------------------------------------------
+;; Estado Dinámico
+;; -------------------------------------------------------------
+;; -> Estado aerolínia
+;; (state maquina posicionMaquina estadoMaquina iniVagon [dV] finVagon iniMaletas [dM] finMaletas)
+;; posicionMaquina  -->   nodo
+;; estadoMaquina    -->   ocupada | libre
+;; dV               -->   vx posicionVagon cantidadMaletasVagon / x >= 0 and posicionVagon = nodo | maquina
+;; dM               -->   my posicionMaleta / y >= 0 and posicionMaleta = nodo | vx
+
+
+;; -------------------------------------------------------------
+;; Estados Estáticos
+;; -------------------------------------------------------------
+;; -> Maleta
+;; (maleta my peso destino) / y >= 0 and destino = nodo
+;;
+;; -> Vagon
+;; (vagon vx pesoMinimo pesoMaximo) / x >= 0
+;;
+;; -> Camino
+;; (camino posicionInicial posicionFinal) / posicionInicial = nodo and posicionFinal = nodo
+;;
+
+;; =============================================================
+;; Implementación
+;; =============================================================
+
+;; -------------------------------------------------------------
+;; Definición de los hechos
+;; -------------------------------------------------------------
+;; -> Hechos estáticos
+;; - Maletas
 (deffacts maletas
  (mal m1 12 p3)
  (mal m2 18 p5)
@@ -5,39 +92,39 @@
  (mal m4 14 re)
 )
 
+;; - Vagones
 (deffacts vagon
   (vag t1 0 15)
   (vag t2 16 23)
 )
 
-(deffacts camino
-  (cam p2 fac)
-  (cam p2 p4)
-  (cam p4 p2)
-  (cam p4 p3)
-  (cam p3 p1)
-  (cam p3 p4)
-  (cam p1 fac)
-  (cam p1 p5)
-  (cam p1 p3)
-  (cam fac p2)
-  (cam fac p1)
-  (cam p5 p1)
-  (cam p5 re)
-  (cam p5 p7)
-  (cam re p5)
-  (cam re p6)
-  (cam p7 p5)
-  (cam p7 p8)
-  (cam p8 p7)
-  (cam p8 p6)
-  (cam p6 p8)
-  (cam p6 re)
+;; - Caminos entre nodos
+(deffacts caminos
+  (camino p2 fac)
+  (camino p2 p4)
+  (camino p4 p2)
+  (camino p4 p3)
+  (camino p3 p1)
+  (camino p3 p4)
+  (camino p1 fac)
+  (camino p1 p5)
+  (camino p1 p3)
+  (camino fac p2)
+  (camino fac p1)
+  (camino p5 p1)
+  (camino p5 re)
+  (camino p5 p7)
+  (camino re p5)
+  (camino re p6)
+  (camino p7 p5)
+  (camino p7 p8)
+  (camino p8 p7)
+  (camino p8 p6)
+  (camino p6 p8)
+  (camino p6 re)
 )
 
-;; estadoMaquina  -> libre  | ocupada
-;; posicionVagon  -> ?nodo  | maquina
-;; posicionMaleta -> ?vagon | ?nodo
+;; -> Hecho dinámico
 (deffacts terminal
   (state
     maquina posicionMaquina estadoMaquina
@@ -52,26 +139,45 @@
   )
 )
 
-;; --------------------------------------------------------
-;; Rules
+;; -------------------------------------------------------------
+;; Definición de las reglas
+;; -------------------------------------------------------------
 
-;;(defrule default
-;;  (state maquina ?posicionMaquina ?esatdoMaquina
-;;    iniVagon
-;;      $?iniV
-;;        ?vx ?posicionV ?cantidadV
-;;      $?finV
-;;    finVagon
-;;    iniMaletas
-;;      $?iniM
-;;        ?mx ?posicionM
-;;      $?finM
-;;    finMaletas
-;;  )
-;;  (maleta ?mx ?pesoM ?destinoM)
-;;  (vagon ?vx ?pesoMin ?pesoMax)
-;;)
 
+;; Mover la máquina -> Regla que se encarga de mover la máquinade un nodo a otro mediante un camino
+;; .............................................................
+;; posicionMaquina == posicionNodoInicial
+;; =>
+;; posicionMaquina = posicionNodoFinal
+(defrule moverMaquina
+  (state maquina ?posicionNodoInicial ?esatdoMaquina
+    iniVagon
+      $?vagones
+    finVagon
+    iniMaletas
+      $?maletas
+    finMaletas
+  )
+  (camino ?posicionNodoInicial ?posicionNodoFinal)
+  =>
+  (state maquina ?posicionNodoFinal ?esatdoMaquina
+    iniVagon
+      $?vagones
+    finVagon
+    iniMaletas
+      $?maletas
+    finMaletas
+  )
+)
+
+;; Dejar Maleta -> Regla que se encarga de dejar la maleta en el destino
+;; .............................................................
+;; posicionMaquina == destinoMaletaY
+;; posicionMaletaY == vagonX
+;; posicionVagonX == maquina
+;; =>
+;; cantidadVagonX = pesoMaletaY
+;; ... iniMaletas $?iniM $?finM finMaletas ...
 (defrule dejarMaleta
   (state maquina ?destinoM ?esatdoMaquina
     iniVagon
@@ -100,7 +206,7 @@
   ))
 )
 
-(defrule moverMaquina
+(defrule def
   (state maquina ?posicionMaquina ?esatdoMaquina
     iniVagon
       $?iniV
