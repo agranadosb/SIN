@@ -41,6 +41,7 @@
 ;;
 ;; -> Desenganchar vagón de máquina
 ;;    - Siempre que el vagón esté en la máquina
+;;    - Siempre que la máquina esté libre
 ;;    - El vagón debe estar vacío
 ;;    - Si se desengancha, la máquina pasa de estado ocupada a libre
 ;;    - Si se desengancha, la posición del vagón pasa de ser maquina a un nodo
@@ -247,6 +248,34 @@
         ?mx ?vx
       $?finM
     finMaletas
+  )
+)
+
+;; Enganchar vagón en máquina -> Regla que se encarga de enganchar el vagón en una máquina
+;; .............................................................
+;; posicionMaquina == posicionVagon
+;; estadoMaquina == libre
+;; cantidadV == 0
+;; =>
+;; posicionVagon = maquina
+;; estadoMaquina = ocupada
+(defrule engancharVagonMaquina
+  (state maquina ?posicionV libre
+    iniVagon
+      $?iniV
+        ?vx ?posicionV 0
+      $?finV
+    finVagon
+    $?maletas
+  )
+  =>
+  (state maquina ?posicionV ocupada
+    iniVagon
+      $?iniV
+        ?vx maquina 0
+      $?finV
+    finVagon
+    $?maletas
   )
 )
 
