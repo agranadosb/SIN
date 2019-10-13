@@ -76,7 +76,17 @@
 ;;
 ;; -> Camino
 ;; (camino posicionInicial posicionFinal) / posicionInicial = nodo and posicionFinal = nodo
-;;
+
+;; -------------------------------------------------------------
+;; Definición de las reglas
+;; -------------------------------------------------------------
+;; moverMaquina -> Regla que se encarga de mover la máquinade un nodo a otro mediante un camino
+;; dejarMaleta -> Regla que se encarga de dejar la maleta en el destino
+;; recogerMaleta -> Regla que se encarga de recoger la maleta de un nodo
+;; engancharVagonMaquina -> Regla que se encarga de enganchar el vagón en una máquina
+;; desengancharVagonMaquina -> Regla que se encarga de desenganchar el vagón de la maquina
+;; acabaPrograma -> Regla que se encarga de acabar el programa
+
 
 ;; =============================================================
 ;; Implementación
@@ -142,11 +152,9 @@
 )
 
 ;; -------------------------------------------------------------
-;; Definición de las reglas
+;; Implementación de las reglas
 ;; -------------------------------------------------------------
-
-
-;; Mover la máquina -> Regla que se encarga de mover la máquinade un nodo a otro mediante un camino
+;; moverMaquina -> Regla que se encarga de mover la máquinade un nodo a otro mediante un camino
 ;; .............................................................
 ;; posicionMaquina == posicionNodoInicial
 ;; =>
@@ -172,7 +180,7 @@
   )
 )
 
-;; Dejar Maleta -> Regla que se encarga de dejar la maleta en el destino
+;; dejarMaleta -> Regla que se encarga de dejar la maleta en el destino
 ;; .............................................................
 ;; posicionMaquina == destinoMaletaY
 ;; posicionMaletaY == vagonX
@@ -209,7 +217,7 @@
   ))
 )
 
-;; Recoger Maleta -> Regla que se encarga de recoger la maleta de un nodo
+;; recogerMaleta -> Regla que se encarga de recoger la maleta de un nodo
 ;; .............................................................
 ;; posicionMaquina == posicionMaleta
 ;; posicionVagon == maquina
@@ -251,7 +259,7 @@
   )
 )
 
-;; Enganchar vagón en máquina -> Regla que se encarga de enganchar el vagón en una máquina
+;; engancharVagonMaquina -> Regla que se encarga de enganchar el vagón en una máquina
 ;; .............................................................
 ;; posicionMaquina == posicionVagon
 ;; estadoMaquina == libre
@@ -279,7 +287,7 @@
   )
 )
 
-;; Desenganchar Vagón de Máquina -> Regla que se encarga de desenganchar el vagón de la maquina
+;; desengancharVagonMaquina -> Regla que se encarga de desenganchar el vagón de la maquina
 ;; .............................................................
 ;; cantidadV == 0
 ;; estadoMaquina == ocupada
@@ -307,7 +315,7 @@
   )
 )
 
-;; Acabar el programa -> Regla que se encarga de acabar el programa
+;; acabaPrograma -> Regla que se encarga de acabar el programa
 ;; .............................................................
 ;; ... iniMaletas $?maletas finMaletas
 ;; length($?maletas) == 0
