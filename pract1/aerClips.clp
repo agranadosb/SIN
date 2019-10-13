@@ -180,7 +180,7 @@
 ;; estadoMaquina == ocupada
 ;; =>
 ;; cantidadVagonX = pesoMaletaY
-;; ... iniMaletas $?iniM $?finM finMaletas ...
+;; ... iniMaletas $?iniM $?finM finMaletas
 (defrule dejarMaleta
   (state maquina ?destinoM ocupada
     iniVagon
@@ -279,19 +279,47 @@
   )
 )
 
-(defrule def
-  (state maquina ?posicionMaquina ?esatdoMaquina
+;; Desenganchar Vagón de Máquina -> Regla que se encarga de desenganchar el vagón de la maquina
+;; .............................................................
+;; cantidadV == 0
+;; estadoMaquina == ocupada
+;; posicionV == maquina
+;; =>
+;; posicionV = posicionMaquina
+;; estadoMaquina = libre
+(defrule desengancharVagonMaquina
+  (state maquina ?posicionMaquina ocupada
     iniVagon
       $?iniV
-        ?vx ?posicionV ?cantidadV
+        ?vx maquina 0
       $?finV
     finVagon
+    $?maletas
+  )
+  =>
+  (state maquina ?posicionMaquina libre
+    iniVagon
+      $?iniV
+        ?vx ?posicionMaquina 0
+      $?finV
+    finVagon
+    $?maletas
+  )
+)
+
+;; Acabar el programa -> Regla que se encarga de acabar el programa
+;; .............................................................
+;; ... iniMaletas $?maletas finMaletas
+;; length($?maletas) == 0
+;; =>
+;; acabar el programa
+(defrule def
+  ($?estado
     iniMaletas
-      $?iniM
-        ?mx ?posicionM
-      $?finM
+      $?maletas
     finMaletas
   )
-  (maleta ?mx ?pesoM ?destinoM)
-  (vagon ?vx ?pesoMin ?pesoMax)
+  (test (= 0 (length $?maletas)))
+  =>
+  ;; Acabar programa
 )
