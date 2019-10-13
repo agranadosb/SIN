@@ -457,7 +457,13 @@
   )
   (test (= 0 (length $?maletas)))
   =>
-  (printout t "Solucion encontrada:" crlf " - Nivel: " ?nivel crlf " - Hecho: " ?f crlf " - Nodos: " ?*nod-gen*  crlf " - Tipo: " ?*tipo* crlf)
+  (printout t
+    "Solucion encontrada:" crlf
+    " - Nivel: " ?nivel crlf
+    " - Hecho: " ?f crlf
+    " - Nodos: " ?*nod-gen*  crlf
+    " - Tipo:  " ?*tipo* crlf
+  )
   (halt)
 )
 
