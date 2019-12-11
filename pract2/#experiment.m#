@@ -11,6 +11,7 @@ bs = str2num(arg_list{3});
 
 load(data);
 
+
 # Numbers of rows and cols of the data (N, L)
 [N, L] = size(data);
 
@@ -30,12 +31,12 @@ rand("seed", 23);
 # Change the positionof the rows
 data = data(randperm(N), :);
 
-fid = fopen("res.w", 'w+');
-fprintf(fid, "#      a       b     E     k Ete Ete (-)    Ite (-)\n");
-fprintf(fid, "#------- ------- ----- ----- --- ------- ----------\n");
+fid = fopen(strcat(data, '.w'), 'w+');
+fprintf(fid, "#      b   E   k Ete\n");
+fprintf(fid, "#------- --- --- ---\n");
 
-printf("#      a       b     E     k Ete Ete (-)    Ite (-)\n");
-printf("#------- ------- ----- ----- --- ------- ----------\n");
+printf("#      b   E   k Ete\n");
+printf("#------- --- --- ---\n");
 for a = as
         for b = bs
                 # -> Calculate Perceptron for a and b
@@ -52,27 +53,13 @@ for a = as
                         rl(n) = ll(linmach(w, [1 te(n, 1:D)]'));
                 end
 
-                [nerr m] = confus(te(:,L),rl);
+                [nerr m] = confus(te(:, L), rl);
 
-		# Probibilidad empírica de error
-                p = nerr / M;
+                s = sqrt(m(1 - m) / M)
+                r = 1.96 * s
 
-		# Para calcular el intervalo de confianza
-                s = sqrt(p * (1 - p) / M);
-                r = 1.96 * s;
-
-		# Margen superior e inferior del intervalo de confianza
-                ma = p + r;
-                mi = p - r;
-
-                if (ma < 0)
-                        ma = 0;
-                end
-                if (mi < 0)
-                        mi = 0;
-                end
-                printf("%8.1f %7.1f %3d %5d %5d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
-		fprintf(fid, "%8.1f %7.1f %5d %5d %3d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
+                fprintf(fid, "%8.1f %3d %3d %3d\n", b, E, k, nerr);
+                printf("%8.1f %3d %3d %3d\n", b, E, k, nerr);
         end
 end
-# fclose(fid);
+fclose(fid);
