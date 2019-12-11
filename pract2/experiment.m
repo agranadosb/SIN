@@ -31,11 +31,11 @@ rand("seed", 23);
 data = data(randperm(N), :);
 
 fid = fopen("res.w", 'w+');
-fprintf(fid, "#      a            b     E     k Ete Ete (-)    Ite (-)\n");
-fprintf(fid, "#------- ------------ ----- ----- --- ------- ----------\n");
+fprintf(fid, "#      a            b     E     k   Ete Ete (-)    Ite (-)\n");
+fprintf(fid, "#------- ------------ ----- ----- ----- ------- ----------\n");
 
-printf("#      a            b     E     k Ete Ete (-)    Ite (-)\n");
-printf("#------- ------------ ----- ----- --- ------- ----------\n");
+printf("#      a            b     E     k   Ete Ete (-)    Ite (-)\n");
+printf("#------- ------------ ----- ----- ----- ------- ----------\n");
 for a = as
     for b = bs
         # -> Calculate Perceptron for a and b
@@ -71,7 +71,7 @@ for a = as
         if (mi < 0)
                 mi = 0;
         end
-        printf("%8.1f %12.1f %3d %5d %5d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
-        fprintf(fid, "%8.1f %12.1f %5d %5d %3d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
+        printf("%8.1f %12.1f %5d %5d %5d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
+        fprintf(fid, "%8.1f %12.1f %5d %5d %5d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
     end
 end
