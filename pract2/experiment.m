@@ -37,42 +37,41 @@ fprintf(fid, "#------- ------- ----- ----- --- ------- ----------\n");
 printf("#      a       b     E     k Ete Ete (-)    Ite (-)\n");
 printf("#------- ------- ----- ----- --- ------- ----------\n");
 for a = as
-        for b = bs
-                # -> Calculate Perceptron for a and b
-                [w, E, k] = perceptron(data(1:NTr, :), b, a);
+    for b = bs
+        # -> Calculate Perceptron for a and b
+        [w, E, k] = perceptron(data(1:NTr, :), b, a);
 
-                # Get the 30% percent of the data (we training the perceptron with the 70% of the data)
-                M = N - round(.7 * N);
-                te = data(N - M + 1:N, :);
+        # Get the 30% percent of the data (we training the perceptron with the 70% of the data)
+        M = N - round(.7 * N);
+        te = data(N - M + 1:N, :);
 
-                # Get the result of apply g to the 30% of the data
-                rl = zeros(M, 1);
+        # Get the result of apply g to the 30% of the data
+        rl = zeros(M, 1);
 
-                for n = 1:M
-                        rl(n) = ll(linmach(w, [1 te(n, 1:D)]'));
-                end
-
-                [nerr m] = confus(te(:,L),rl);
-
-		# Probibilidad empírica de error
-                p = nerr / M;
-
-		# Para calcular el intervalo de confianza
-                s = sqrt(p * (1 - p) / M);
-                r = 1.96 * s;
-
-		# Margen superior e inferior del intervalo de confianza
-                ma = p + r;
-                mi = p - r;
-
-                if (ma < 0)
-                        ma = 0;
-                end
-                if (mi < 0)
-                        mi = 0;
-                end
-                printf("%8.1f %7.1f %3d %5d %5d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
-		fprintf(fid, "%8.1f %7.1f %5d %5d %3d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
+        for n = 1:M
+            rl(n) = ll(linmach(w, [1 te(n, 1:D)]'));
         end
+
+        [nerr m] = confus(te(:,L),rl);
+
+        # Probibilidad empírica de error
+        p = nerr / M;
+
+        # Para calcular el intervalo de confianza
+        s = sqrt(p * (1 - p) / M);
+        r = 1.96 * s;
+
+        # Margen superior e inferior del intervalo de confianza
+        ma = p + r;
+        mi = p - r;
+
+        if (ma < 0)
+                ma = 0;
+        end
+        if (mi < 0)
+                mi = 0;
+        end
+        printf("%8.1f %7.1f %3d %5d %5d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
+        fprintf(fid, "%8.1f %7.1f %5d %5d %3d %7.1f [%.1f, %.1f]\n", a, b, E, k, nerr, p * 100, mi * 100, ma * 100);
+    end
 end
-# fclose(fid);
