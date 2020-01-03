@@ -1,0 +1,3 @@
+=>> PBS: job killed: walltime 607 exceeded limit 600
+attempting to save variables to `octave-core'...
+save to `octave-core' complete
